@@ -1,0 +1,167 @@
+        <div id="custom_notifications" class="custom-notifications dsp_none">
+          <ul class="list-unstyled notifications clearfix" data-tabbed_notifications="notif-group">
+          </ul>
+          <div class="clearfix"></div>
+          <div id="notif-group" class="tabbed_notifications"></div>
+        </div>
+
+        <script src="/static/js/bootstrap.min.js"></script>
+
+        <!-- bootstrap progress js -->
+        <script src="/static/js/progressbar/bootstrap-progressbar.min.js"></script>
+        <script src="/static/js/nicescroll/jquery.nicescroll.min.js"></script>
+        <!-- icheck -->
+        <script src="/static/js/icheck/icheck.min.js"></script>
+
+        <script src="/static/js/custom.js"></script>
+
+        <!-- daterangepicker -->
+        <script type="text/javascript" src="/static/js/moment/moment.min.js"></script>
+        <script type="text/javascript" src="/static/js/datepicker/daterangepicker.js"></script>
+
+        <!-- Datatables-->
+        <script src="/static/js/datatables/jquery.dataTables.min.js"></script>
+        <script src="/static/js/datatables/dataTables.bootstrap.js"></script>
+        <script src="/static/js/datatables/dataTables.buttons.min.js"></script>
+        <script src="/static/js/datatables/buttons.bootstrap.min.js"></script>
+        <script src="/static/js/datatables/jszip.min.js"></script>
+        <script src="/static/js/datatables/pdfmake.min.js"></script>
+        <script src="/static/js/datatables/vfs_fonts.js"></script>
+        <script src="/static/js/datatables/buttons.html5.min.js"></script>
+        <script src="/static/js/datatables/buttons.print.min.js"></script>
+        <script src="/static/js/datatables/dataTables.fixedHeader.min.js"></script>
+        <script src="/static/js/datatables/dataTables.keyTable.min.js"></script>
+        <script src="/static/js/datatables/dataTables.responsive.min.js"></script>
+        <script src="/static/js/datatables/responsive.bootstrap.min.js"></script>
+        <script src="/static/js/datatables/dataTables.scroller.min.js"></script>
+         <script type="text/javascript" src="/static/js/datepicker/daterangepicker.js"></script>
+
+        <!-- pace -->
+        <script src="/static/js/pace/pace.min.js"></script>
+        <script>
+          var handleDataTableButtons = function() {
+              "use strict";
+              0 !== $("#datatable-buttons").length && $("#datatable-buttons").DataTable({
+                dom: "Bfrtip",
+                buttons: [{
+                  extend: "copy",
+                  className: "btn-sm"
+                }, {
+                  extend: "csv",
+                  className: "btn-sm"
+                }, {
+                  extend: "excel",
+                  className: "btn-sm"
+                }, {
+                  extend: "pdf",
+                  className: "btn-sm"
+                }, {
+                  extend: "print",
+                  className: "btn-sm"
+                }],
+                responsive: !0
+              })
+            },
+            TableManageButtons = function() {
+              "use strict";
+              return {
+                init: function() {
+                  handleDataTableButtons()
+                }
+              }
+            }();
+        </script>
+        <script type="text/javascript">
+          $(document).ready(function() {
+            $('#datatable').dataTable();
+            $('#datatable-keytable').DataTable({
+              keys: true
+            });
+            $('#datatable-responsive').DataTable();
+            $('#datatable-scroller').DataTable({
+              ajax: "/static/js/datatables/json/scroller-demo.json",
+              deferRender: true,
+              scrollY: 380,
+              scrollCollapse: true,
+              scroller: true
+            });
+            var table = $('#datatable-fixed-header').DataTable({
+              fixedHeader: true
+            });
+          });
+          TableManageButtons.init();
+        </script>
+
+  <!-- Autocomplete -->
+    <script type="text/javascript" src="/static/js/autocomplete/countries.js"></script>
+    <script src="/static/js/autocomplete/jquery.autocomplete.js"></script>
+ <!-- select2 -->
+  <script src="/static/js/select/select2.full.js"></script>
+  <!-- pace -->
+      <!--<script src="js/pace/pace.min.js"></script>-->
+      <script type="text/javascript"> $(function() {
+       'use strict';
+       var countriesArray = $.map(countries, function(value, key) {
+          return {
+                 value: value,
+                 data: key
+          };
+      });
+// Initialize autocomplete with custom appendTo: $('#autocomplete-custom-append').autocomplete({
+         lookup: countriesArray,
+         appendTo: '#autocomplete-container'
+          });
+});
+  </script>
+
+ <!-- select2 -->
+  <script>
+    $(document).ready(function() {
+      $(".select2_single").select2({
+        placeholder: "Select a state",
+        allowClear: true
+      });
+      $(".select2_group").select2({});
+      $(".select2_multiple").select2({
+        maximumSelectionLength: 4,
+        placeholder: "With Max Selection limit 4",
+        allowClear: true
+      });
+    });
+  </script>
+  <!-- /select2 -->
+
+  <!-- Daterange picker -->
+  <script type="text/javascript">
+$(function() {
+    $('input[name="daterange"]').daterangepicker({
+        format: 'DD.MM.YYYY',
+        autoApply: true,
+        locale: {
+                format: 'DD.MM.YYYY'
+                },
+        ranges: {
+                'Сегодня': [moment(), moment().subtract(-1, 'days')],
+                'Вчера': [moment().subtract(1, 'days'), moment()],
+                'Неделя': [moment().subtract(7, 'days'), moment().subtract(-1, 'days')],
+                '30 Дней': [moment().subtract(30, 'days'), moment().subtract(-1, 'days')],
+                'Этот месяц': [moment().startOf('month'), moment().endOf('month')],
+                'Прошлый месяц': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+        locale: {
+                fromLabel: 'От',
+                toLabel: 'До',
+                customRangeLabel: 'Задать',
+                daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чв', 'Пн', 'Сб'],
+                monthNames: ['Январь', 'февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                firstDay: 1
+                }
+    });
+});
+  </script>
+  <script>
+    NProgress.done();
+  </script>
+  <!-- /datepicker -->
+</body>
+</html>

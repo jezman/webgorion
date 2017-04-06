@@ -1,0 +1,36 @@
+      <!-- page content -->
+      <div class="right_col" role="main">
+          <div class="clearfix"></div>
+          <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+              <div class="x_panel">
+                <div class="x_title">
+                  <h2>Система контроля доступом <small>отчет по сотрудникам</small></h2>
+                    <form role="form" method="GET" action="/report_summary">
+                    </li>
+                  <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                  <div class="form-group">
+                     <div class="col-md-3 col-sm-3 col-xs-12">
+                       <select name="employee" class="select2_group form-control">
+                           <option value="">Сотрудник</option>
+                           {{ range .Employees }}
+                           <option value="{{ .ID }}">{{ .FirstName }} {{ .LastName }} {{ .MidName }}</option>
+                           {{ end }}
+                       </select>
+                     </div>
+                     <div class="col-md-3 col-sm-3 col-xs-12">
+                       <select name="door" class="select2_group form-control">
+                           <option value="">Дверь</option>
+                        {{ range .Doors }}
+                           <option value="{{ .ID }}">{{ .Name }}</option>
+                           {{ end }}
+                       </select>
+                     </div>
+                     <div class="col-md-3 col-sm-3 col-xs-12">
+                       <button type="submit" class="btn btn-success">Сгенерировать</button>
+                     </div>
+                       <input class="pull-right" type="text" name="daterange" value="{{ .FirstDate  }} - {{ .LastDate }}" />
+                       </form>
+                  </div>
