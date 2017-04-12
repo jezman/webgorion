@@ -2,9 +2,7 @@ package models
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -13,6 +11,7 @@ import (
 
 var (
 	db        *sql.DB
+	rows      *sql.Rows
 	err       error
 	doors     = []Door{}
 	employees = []Employee{}
@@ -41,38 +40,19 @@ type Events struct {
 	Door      Door
 }
 
-type config struct {
-	Server   string
-	Database string
-	User     string
-	Password string
+type Config struct {
+	Server        string
+	Database      string
+	User          string
+	Password      string
+	Smtp2goApiKey string
 }
 
-func init() {
-	connect()
-}
-
-func readConfigFile() config {
-	confFile, err := os.Open("config.json")
-	if err != nil {
-		fmt.Println("Read configuration file error:", err)
-	}
-	defer confFile.Close()
-
-	decoder := json.NewDecoder(confFile)
-	conf := config{}
-	err = decoder.Decode(&conf)
-	if err != nil {
-		fmt.Println("JSON decode error:", err)
-	}
-	return conf
-}
 func connect() *sql.DB {
-	conf := readConfigFile()
-	dsn := "server=" + conf.Server +
-		";user id=" + conf.User +
-		";password=" + conf.Password +
-		";database=" + conf.Database
+	dsn := "server=" + Conf.Server +
+		";user id=" + Conf.User +
+		";password=" + Conf.Password +
+		";database=" + Conf.Database
 	db, err = sql.Open("mssql", dsn)
 	if err != nil {
 		fmt.Println("Connection error", err)
@@ -86,6 +66,7 @@ func connect() *sql.DB {
 }
 
 func GetEmployees() []Employee {
+	connect()
 	if len(employees) == 0 {
 		rows, err := db.Query("SELECT ID, Name, FirstName, MidName FROM dbo.pList ORDER BY Name")
 		if err != nil {
@@ -106,14 +87,16 @@ func GetEmployees() []Employee {
 			employees = append(employees, employee)
 		}
 	}
+	defer db.Close()
 	return employees
 }
 
 func GetDoors() []Door {
+	connect()
 	if len(doors) == 0 {
 		rows, err := db.Query("SELECT GIndex, Name FROM dbo.AcessPoint ORDER BY Name")
 		if err != nil {
-			fmt.Println("Query", err)
+			fmt.Println("Query:", err)
 		}
 		defer rows.Close()
 
@@ -126,45 +109,79 @@ func GetDoors() []Door {
 			doors = append(doors, door)
 		}
 	}
+	defer db.Close()
 	return doors
 }
 
-func GetEvents(daterange, door, employee string) (events []Events) {
-	query := []string{"SELECT p.Name, p.FirstName, p.MidName, c.Name, TimeVal, e.Contents, a.Name ",
-		"FROM dbo.pLogData l ",
-		"JOIN dbo.pList p ON (p.ID = l.HozOrgan) ",
-		"JOIN dbo.pCompany c ON (c.ID = p.Company) ",
-		"JOIN dbo.Events e ON (e.Event = l.Event) ",
-		"JOIN dbo.AcessPoint a ON (a.GIndex = l.DoorIndex) ",
-		"WHERE TimeVal BETWEEN '", daterange[:10], "' AND '", daterange[13:], "'",
-		" AND e.Event BETWEEN 26 AND 29",
-		"ORDER BY TimeVal",
-	}
-	pName := " AND p.Id = '"
-	doorIndex := "' AND DoorIndex = "
-	orderBy := "' ORDER BY TimeVal"
-
-	add := func(cmd ...string) {
-		query = append(query[:len(query)-1], cmd...)
+func GetEvents(dateRange, door string, employee []string) (events []Events) {
+	connect()
+	query := []string{`SELECT p.Name, p.FirstName, p.MidName, c.Name, TimeVal, e.Contents, a.Name
+		FROM dbo.pLogData l
+		JOIN dbo.pList p ON (p.ID = l.HozOrgan)
+		JOIN dbo.pCompany c ON (c.ID = p.Company)
+		JOIN dbo.Events e ON (e.Event = l.Event)
+		JOIN dbo.AcessPoint a ON (a.GIndex = l.DoorIndex)
+		WHERE TimeVal BETWEEN '`, dateRange[:10], `' AND '`, dateRange[13:],
+		`' AND e.Event BETWEEN 26 AND 29 `,
 	}
 
-	if door != "" && employee != "" {
-		add(pName, employee, doorIndex, door, orderBy[1:])
+	// add params to query
+	updateRows := func(cmd ...interface{}) {
+		rows, err = db.Query(strings.Join(query, ``), cmd...)
+		if err != nil {
+			fmt.Println("Query:", err)
+		}
+	}
 
-	} else if employee != "" {
-		add(pName, employee, orderBy)
+	pNameOne := ` AND p.Id in (?) `
+	pNameTwo := ` AND p.Id in (?, ?) `
+	pNameThree := ` AND p.Id in (?, ?, ?) `
+	pNameFour := ` AND p.Id in (?, ?, ?, ?) `
+	doorIndex := ` AND DoorIndex = ?`
+
+	if door != "" && len(employee) != 0 {
+		switch len(employee) {
+		case 1:
+			query = append(query, pNameOne, doorIndex)
+			updateRows(employee[0], door)
+		case 2:
+			query = append(query, pNameTwo, doorIndex)
+			updateRows(employee[0], employee[1], door)
+		case 3:
+			query = append(query, pNameThree, doorIndex)
+			updateRows(employee[0], employee[1], employee[2], door)
+		case 4:
+			query = append(query, pNameFour, doorIndex)
+			updateRows(employee[0], employee[1], employee[2], employee[3], door)
+		}
+
+	} else if len(employee) != 0 {
+		switch len(employee) {
+		case 1:
+			query = append(query, pNameOne)
+			updateRows(employee[0])
+		case 2:
+			query = append(query, pNameTwo)
+			updateRows(employee[0], employee[1])
+		case 3:
+			query = append(query, pNameThree)
+			updateRows(employee[0], employee[1], employee[2])
+		case 4:
+			query = append(query, pNameFour)
+			updateRows(employee[0], employee[1], employee[2], employee[3])
+		}
 
 	} else if door != "" {
-		add(doorIndex[1:], door, orderBy[1:])
-	}
+		query = append(query, doorIndex)
+		updateRows(door)
 
-	rows, err := db.Query(strings.Join(query, ""))
-	if err != nil {
-		fmt.Println("Query:", err)
+	} else {
+		updateRows()
 	}
 
 	event := Events{}
 
+	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(
 			&event.Employee.FirstName,
@@ -181,29 +198,51 @@ func GetEvents(daterange, door, employee string) (events []Events) {
 
 		events = append(events, event)
 	}
+	defer db.Close()
 	return events
 }
 
-func GetWorkHours(dateRange, employee string) (events []Events) {
-	query := []string{"SELECT p.Name, p.FirstName, p.MidName, c.Name, min(TimeVal), max(TimeVal) ",
-		"FROM dbo.pLogData l ",
-		"JOIN dbo.pList p ON (p.ID = l.HozOrgan) ",
-		"JOIN dbo.pCompany c ON (c.ID = p.Company) ",
-		"WHERE TimeVal BETWEEN '", dateRange[:10], "' AND '", dateRange[13:], "'",
-		" AND p.Name = '", employee, "'",
-		" GROUP BY p.Name, p.FirstName, p.MidName, c.Name, CONVERT(varchar(20), TimeVal, 104)",
-	}
-	if employee == "" {
-		query = append(query[:9], query[12])
+func GetWorkHours(dateRange string, employee []string) (events []Events) {
+	connect()
+	query := []string{`SELECT p.Name, p.FirstName, p.MidName, c.Name, min(TimeVal), max(TimeVal)
+		FROM dbo.pLogData l
+		JOIN dbo.pList p ON (p.ID = l.HozOrgan)
+		JOIN dbo.pCompany c ON (c.ID = p.Company) `,
+		`WHERE TimeVal BETWEEN '`, dateRange[:10], `' AND '`, dateRange[13:], `'`,
+		`AND p.Id in(?)`,
+		`GROUP BY p.Name, p.FirstName, p.MidName, c.Name, CONVERT(varchar(20), TimeVal, 104)`,
 	}
 
-	rows, err := db.Query(strings.Join(query, ""))
-	if err != nil {
-		fmt.Println("Query:", err)
+	// add params to query
+	updateRows := func(cmd ...interface{}) {
+		rows, err = db.Query(strings.Join(query, ``), cmd...)
+		if err != nil {
+			fmt.Println("Query:", err)
+		}
+	}
+
+	if len(employee) == 0 {
+		query = append(query[:9], query[10])
+	}
+
+	switch len(employee) {
+	case 1:
+		query[6] = ` AND p.Id in (?) `
+		updateRows(employee[0])
+	case 2:
+		query[6] = ` AND p.Id in (?, ?) `
+		updateRows(employee[0], employee[1])
+	case 3:
+		query[6] = ` AND p.Id in (?, ?, ?) `
+		updateRows(employee[0], employee[1], employee[2])
+	case 4:
+		query[6] = ` AND p.Id in(?, ?, ?, ?) `
+		updateRows(employee[0], employee[1], employee[2], employee[3])
 	}
 
 	event := Events{}
 
+	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(
 			&event.Employee.FirstName,
@@ -220,5 +259,6 @@ func GetWorkHours(dateRange, employee string) (events []Events) {
 
 		events = append(events, event)
 	}
+	defer db.Close()
 	return events
 }

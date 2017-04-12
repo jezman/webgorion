@@ -18,14 +18,14 @@ type AcsController struct {
 }
 
 func (c *AcsController) SummaryReport() {
-	getEmployee := c.Input().Get("employee")
+	getEmployees := c.GetStrings("employee")
 	getDateRange := c.Input().Get("daterange")
 	getDoor := c.Input().Get("door")
 
 	c.Data["Title"] = "СКУД | Общий отчет"
 	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
 	c.Data["LastDate"] = timeNow.AddDate(0, 0, 1).Format("02.01.2006")
-	c.Data["Events"] = models.GetEvents(getDateRange, getDoor, getEmployee)
+	c.Data["Events"] = models.GetEvents(getDateRange, getDoor, getEmployees)
 	c.Data["Doors"] = models.GetDoors()
 	c.Data["DateRange"] = getDateRange
 	c.Data["Employees"] = models.GetEmployees()
@@ -33,32 +33,32 @@ func (c *AcsController) SummaryReport() {
 	c.Layout = "acs/layout.tpl"
 	c.TplName = "acs/layout.tpl"
 	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["Header"] = "acs/header.html"
-	c.LayoutSections["Menu"] = "acs/menu.html"
+	c.LayoutSections["Header"] = "header.html"
+	c.LayoutSections["Menu"] = "menu.html"
 	c.LayoutSections["Form"] = "acs/form_summary.html"
 	c.LayoutSections["Table"] = "acs/table_summary.html"
-	c.LayoutSections["Footer"] = "acs/footer.html"
+	c.LayoutSections["Footer"] = "footer.html"
 }
 
 func (c *AcsController) HoursReport() {
-	getEmployee := c.Input().Get("employee")
+	getEmployees := c.GetStrings("employee")
 	getDateRange := c.Input().Get("daterange")
 
 	c.Data["Title"] = "СКУД | Отчет по отработанному времени"
 	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
 	c.Data["LastDate"] = timeNow.AddDate(0, 0, 1).Format("02.01.2006")
-	c.Data["Events"] = models.GetWorkHours(getDateRange, getEmployee)
+	c.Data["Events"] = models.GetWorkHours(getDateRange, getEmployees)
 	c.Data["DateRange"] = getDateRange
 	c.Data["Employees"] = models.GetEmployees()
 
 	c.Layout = "acs/layout.tpl"
 	c.TplName = "acs/layout.tpl"
 	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["Header"] = "acs/header.html"
-	c.LayoutSections["Menu"] = "acs/menu.html"
+	c.LayoutSections["Header"] = "header.html"
+	c.LayoutSections["Menu"] = "menu.html"
 	c.LayoutSections["Form"] = "acs/form_hours.html"
 	c.LayoutSections["Table"] = "acs/table_hours.html"
-	c.LayoutSections["Footer"] = "acs/footer.html"
+	c.LayoutSections["Footer"] = "footer.html"
 }
 
 func (c *AcsController) ViewHours() {
@@ -70,10 +70,10 @@ func (c *AcsController) ViewHours() {
 	c.TplName = "acs/layout.tpl"
 	c.Layout = "acs/layout.tpl"
 	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["Header"] = "acs/header.html"
-	c.LayoutSections["Menu"] = "acs/menu.html"
+	c.LayoutSections["Header"] = "header.html"
+	c.LayoutSections["Menu"] = "menu.html"
 	c.LayoutSections["Form"] = "acs/form_hours.html"
-	c.LayoutSections["Footer"] = "acs/footer.html"
+	c.LayoutSections["Footer"] = "footer.html"
 }
 
 func (c *AcsController) ViewSummary() {
@@ -86,8 +86,8 @@ func (c *AcsController) ViewSummary() {
 	c.TplName = "acs/layout.tpl"
 	c.Layout = "acs/layout.tpl"
 	c.LayoutSections = make(map[string]string)
-	c.LayoutSections["Header"] = "acs/header.html"
-	c.LayoutSections["Menu"] = "acs/menu.html"
+	c.LayoutSections["Header"] = "header.html"
+	c.LayoutSections["Menu"] = "menu.html"
 	c.LayoutSections["Form"] = "acs/form_summary.html"
-	c.LayoutSections["Footer"] = "acs/footer.html"
+	c.LayoutSections["Footer"] = "footer.html"
 }
