@@ -1,3 +1,11 @@
 2017/04/14 15:36:15 [I] [asm_amd64.s:2197] http server Running on http://:8080
 2017/04/14 15:36:32 [D] [server.go:2568] |      127.0.0.1|[47m 302 [0m|     61.963µs|   match|[44m GET     [0m /     r:/
 2017/04/14 15:36:32 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  66.380028ms|   match|[44m GET     [0m /acs/summary   r:/acs/summary
+2017/04/14 15:53:41 [I] [asm_amd64.s:2197] http server Running on http://:8080
+2017/04/14 15:53:49 [D] [server.go:2568] |      127.0.0.1|[43m 404 [0m|    315.606µs| nomatch|[44m GET     [0m /  
+2017/04/14 15:55:11 [I] [asm_amd64.s:2197] http server Running on http://:8080
+2017/04/14 15:55:15 [D] [server.go:2568] |      127.0.0.1|[47m 302 [0m|     112.02µs|   match|[44m GET     [0m /     r:/
+2017/04/14 15:55:15 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  65.491835ms|   match|[44m GET     [0m /acs/summary   r:/acs/summary
+2017/04/14 15:55:19 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  75.457395ms|   match|[44m GET     [0m /acs/report_summary   r:/acs/report_summary
+2017/04/14 15:55:27 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  77.704927ms|   match|[44m GET     [0m /acs/report_summary   r:/acs/report_summary
+2017/04/14 15:55:27 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|    157.565µs|   match|[44m GET     [0m /static/fonts/glyphicons-halflings-regular.woff2
