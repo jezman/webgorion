@@ -48,21 +48,26 @@ type Config struct {
 	Smtp2goApiKey string
 }
 
-func connect() *sql.DB {
+func connect() {
 	dsn := "server=" + Conf.Server +
 		";user id=" + Conf.User +
 		";password=" + Conf.Password +
 		";database=" + Conf.Database
-	db, err = sql.Open("mssql", dsn)
-	if err != nil {
+
+	if db, err = sql.Open("mssql", dsn); err != nil {
 		fmt.Println("Connection error", err)
 	}
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		fmt.Println("Database unreachable", err)
 	}
-	return db
+}
+
+// add params to query
+func updateRows(query []string, cmd ...interface{}) {
+	if rows, err = db.Query(strings.Join(query, ``), cmd...); err != nil {
+		fmt.Println("Query:", err)
+	}
 }
 
 func GetEmployees() []Employee {
@@ -72,21 +77,17 @@ func GetEmployees() []Employee {
 		if err != nil {
 			fmt.Println("Query", err)
 		}
-		defer rows.Close()
 
+		defer rows.Close()
 		employee := Employee{}
 		for rows.Next() {
-			err := rows.Scan(&employee.ID,
-				&employee.FirstName,
-				&employee.LastName,
-				&employee.MidName,
-			)
-			if err != nil {
+			if err := rows.Scan(&employee.ID, &employee.FirstName, &employee.LastName, &employee.MidName); err != nil {
 				fmt.Println("Cols:", err)
 			}
 			employees = append(employees, employee)
 		}
 	}
+
 	defer db.Close()
 	return employees
 }
@@ -98,17 +99,17 @@ func GetDoors() []Door {
 		if err != nil {
 			fmt.Println("Query:", err)
 		}
-		defer rows.Close()
 
+		defer rows.Close()
 		for rows.Next() {
 			door := Door{}
-			err = rows.Scan(&door.ID, &door.Name)
-			if err != nil {
+			if err = rows.Scan(&door.ID, &door.Name); err != nil {
 				fmt.Println("Cols:", err)
 			}
 			doors = append(doors, door)
 		}
 	}
+
 	defer db.Close()
 	return doors
 }
@@ -125,14 +126,6 @@ func GetEvents(dateRange, door string, employee []string) (events []Events) {
 		`' AND e.Event BETWEEN 26 AND 29 `,
 	}
 
-	// add params to query
-	updateRows := func(cmd ...interface{}) {
-		rows, err = db.Query(strings.Join(query, ``), cmd...)
-		if err != nil {
-			fmt.Println("Query:", err)
-		}
-	}
-
 	pNameOne := ` AND p.Id in (?) `
 	pNameTwo := ` AND p.Id in (?, ?) `
 	pNameThree := ` AND p.Id in (?, ?, ?) `
@@ -143,40 +136,40 @@ func GetEvents(dateRange, door string, employee []string) (events []Events) {
 		switch len(employee) {
 		case 1:
 			query = append(query, pNameOne, doorIndex)
-			updateRows(employee[0], door)
+			updateRows(query, employee[0], door)
 		case 2:
 			query = append(query, pNameTwo, doorIndex)
-			updateRows(employee[0], employee[1], door)
+			updateRows(query, employee[0], employee[1], door)
 		case 3:
 			query = append(query, pNameThree, doorIndex)
-			updateRows(employee[0], employee[1], employee[2], door)
+			updateRows(query, employee[0], employee[1], employee[2], door)
 		case 4:
 			query = append(query, pNameFour, doorIndex)
-			updateRows(employee[0], employee[1], employee[2], employee[3], door)
+			updateRows(query, employee[0], employee[1], employee[2], employee[3], door)
 		}
 
 	} else if len(employee) != 0 {
 		switch len(employee) {
 		case 1:
 			query = append(query, pNameOne)
-			updateRows(employee[0])
+			updateRows(query, employee[0])
 		case 2:
 			query = append(query, pNameTwo)
-			updateRows(employee[0], employee[1])
+			updateRows(query, employee[0], employee[1])
 		case 3:
 			query = append(query, pNameThree)
-			updateRows(employee[0], employee[1], employee[2])
+			updateRows(query, employee[0], employee[1], employee[2])
 		case 4:
 			query = append(query, pNameFour)
-			updateRows(employee[0], employee[1], employee[2], employee[3])
+			updateRows(query, employee[0], employee[1], employee[2], employee[3])
 		}
 
 	} else if door != "" {
 		query = append(query, doorIndex)
-		updateRows(door)
+		updateRows(query, door)
 
 	} else {
-		updateRows()
+		updateRows(query)
 	}
 
 	event := Events{}
@@ -198,6 +191,7 @@ func GetEvents(dateRange, door string, employee []string) (events []Events) {
 
 		events = append(events, event)
 	}
+
 	defer db.Close()
 	return events
 }
@@ -213,14 +207,6 @@ func GetWorkHours(dateRange string, employee []string) (events []Events) {
 		`GROUP BY p.Name, p.FirstName, p.MidName, c.Name, CONVERT(varchar(20), TimeVal, 104)`,
 	}
 
-	// add params to query
-	updateRows := func(cmd ...interface{}) {
-		rows, err = db.Query(strings.Join(query, ``), cmd...)
-		if err != nil {
-			fmt.Println("Query:", err)
-		}
-	}
-
 	if len(employee) == 0 {
 		query = append(query[:9], query[10])
 	}
@@ -228,16 +214,16 @@ func GetWorkHours(dateRange string, employee []string) (events []Events) {
 	switch len(employee) {
 	case 1:
 		query[6] = ` AND p.Id in (?) `
-		updateRows(employee[0])
+		updateRows(query, employee[0])
 	case 2:
 		query[6] = ` AND p.Id in (?, ?) `
-		updateRows(employee[0], employee[1])
+		updateRows(query, employee[0], employee[1])
 	case 3:
 		query[6] = ` AND p.Id in (?, ?, ?) `
-		updateRows(employee[0], employee[1], employee[2])
+		updateRows(query, employee[0], employee[1], employee[2])
 	case 4:
 		query[6] = ` AND p.Id in(?, ?, ?, ?) `
-		updateRows(employee[0], employee[1], employee[2], employee[3])
+		updateRows(query, employee[0], employee[1], employee[2], employee[3])
 	}
 
 	event := Events{}
@@ -259,6 +245,7 @@ func GetWorkHours(dateRange string, employee []string) (events []Events) {
 
 		events = append(events, event)
 	}
+
 	defer db.Close()
 	return events
 }
