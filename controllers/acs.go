@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"time"
-	"webgorion/models"
+
+	"github.com/jezman/webgorion/models"
 
 	"github.com/astaxie/beego"
 )

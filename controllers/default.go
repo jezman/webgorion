@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
-	_ "github.com/denisenkom/go-mssqldb"
 )
 
 type MainController struct {

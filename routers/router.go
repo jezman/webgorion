@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"webgorion/controllers"
+	"github.com/jezman/webgorion/controllers"
 
 	"github.com/astaxie/beego"
 )

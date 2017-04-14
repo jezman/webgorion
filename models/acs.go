@@ -40,6 +40,7 @@ type Events struct {
 	Door      Door
 }
 
+// temp
 type Config struct {
 	Server        string
 	Database      string

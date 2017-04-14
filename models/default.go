@@ -9,7 +9,7 @@ import (
 var Conf = ReadConfigFile()
 
 func ReadConfigFile() Config {
-	confFile, err := os.Open("config.json")
+	confFile, err := os.Open("conf/config.json")
 	if err != nil {
 		fmt.Println("Read configuration file error:", err)
 
