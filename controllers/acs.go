@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/jezman/webgorion/models"
@@ -18,10 +20,47 @@ type AcsController struct {
 	beego.Controller
 }
 
+// Validation door input
+func (c *AcsController) ValidationDoor(getDoor string) {
+	matchDoor, err := regexp.MatchString(`^\d{0,3}$`, getDoor)
+	if err != nil {
+		fmt.Println("Regexp err:", err)
+	}
+	if (!matchDoor && len(getDoor) != 0) || len(getDoor) > 3 {
+		c.Redirect("/", 302)
+	}
+}
+
+// Validation employee input
+func (c *AcsController) ValidationEmployees(getEmployees []string) {
+	for i, _ := range getEmployees {
+		matchEmployee, _ := regexp.MatchString(`^\d{0,3}$`, getEmployees[i])
+		if (!matchEmployee && len(getEmployees[i]) != 0) || len(getEmployees[i]) > 3 || len(getEmployees) > 4 {
+			c.Redirect("/", 302)
+		}
+	}
+
+}
+
+// Validation date input
+func (c *AcsController) ValidationDate(getDateRange string) {
+	matchDate, err := regexp.MatchString(`(0[1-9]|[12][0-9]|3[01])[- ..](0[1-9]|1[012])[- ..][201]\d\d\d\s[- +.]\s(0[1-9]|[12][0-9]|3[01])[- ..](0[1-9]|1[012])[- ..][201]\d\d\d`, getDateRange)
+	if err != nil {
+		fmt.Println("Regexp err:", err)
+	}
+	if !matchDate {
+		c.Redirect("/", 302)
+	}
+}
+
 func (c *AcsController) SummaryReport() {
 	getEmployees := c.GetStrings("employee")
 	getDateRange := c.Input().Get("daterange")
 	getDoor := c.Input().Get("door")
+
+	c.ValidationDoor(getDoor)
+	c.ValidationEmployees(getEmployees)
+	c.ValidationDate(getDateRange)
 
 	c.Data["Title"] = "СКУД | Общий отчет"
 	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
@@ -44,6 +83,9 @@ func (c *AcsController) SummaryReport() {
 func (c *AcsController) HoursReport() {
 	getEmployees := c.GetStrings("employee")
 	getDateRange := c.Input().Get("daterange")
+
+	c.ValidationEmployees(getEmployees)
+	c.ValidationDate(getDateRange)
 
 	c.Data["Title"] = "СКУД | Отчет по отработанному времени"
 	c.Data["FirstDate"] = timeNow.Format("02.01.2006")

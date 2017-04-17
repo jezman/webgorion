@@ -40,7 +40,6 @@ type Events struct {
 	Door      Door
 }
 
-// temp
 type Config struct {
 	Server        string
 	Database      string
@@ -204,15 +203,13 @@ func GetWorkHours(dateRange string, employee []string) (events []Events) {
 		JOIN dbo.pList p ON (p.ID = l.HozOrgan)
 		JOIN dbo.pCompany c ON (c.ID = p.Company) `,
 		`WHERE TimeVal BETWEEN '`, dateRange[:10], `' AND '`, dateRange[13:], `'`,
-		`AND p.Id in(?)`,
+		` `,
 		`GROUP BY p.Name, p.FirstName, p.MidName, c.Name, CONVERT(varchar(20), TimeVal, 104)`,
 	}
 
-	if len(employee) == 0 {
-		query = append(query[:9], query[10])
-	}
-
 	switch len(employee) {
+	case 0:
+		updateRows(query)
 	case 1:
 		query[6] = ` AND p.Id in (?) `
 		updateRows(query, employee[0])
