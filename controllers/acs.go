@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 )
 
 var (
-	timeNow   = time.Now().Local()
 	employees = []models.Employee{}
 	doors     = []models.Door{}
 )
@@ -20,37 +20,51 @@ type AcsController struct {
 	beego.Controller
 }
 
+func FirstDate() string {
+	timeNow := time.Now().Local()
+	now := timeNow.Format("02.01.2006")
+	return now
+}
+
+func LastDate() string {
+	timeNow := time.Now().Local()
+	nowAdd := timeNow.AddDate(0, 0, 1).Format("02.01.2006")
+	return nowAdd
+}
+
 // Validation door input
-func (c *AcsController) ValidationDoor(getDoor string) {
+func ValidationDoor(getDoor string) bool {
 	matchDoor, err := regexp.MatchString(`^\d{0,3}$`, getDoor)
 	if err != nil {
 		fmt.Println("Regexp err:", err)
 	}
 	if (!matchDoor && len(getDoor) != 0) || len(getDoor) > 3 {
-		c.Redirect("/", 302)
+		return false
 	}
+	return true
 }
 
 // Validation employee input
-func (c *AcsController) ValidationEmployees(getEmployees []string) {
+func ValidationEmployees(getEmployees []string) bool {
 	for i, _ := range getEmployees {
 		matchEmployee, _ := regexp.MatchString(`^\d{0,3}$`, getEmployees[i])
 		if (!matchEmployee && len(getEmployees[i]) != 0) || len(getEmployees[i]) > 3 || len(getEmployees) > 4 {
-			c.Redirect("/", 302)
+			return false
 		}
 	}
-
+	return true
 }
 
 // Validation date input
-func (c *AcsController) ValidationDate(getDateRange string) {
+func ValidationDate(getDateRange string) bool {
 	matchDate, err := regexp.MatchString(`(0[1-9]|[12][0-9]|3[01])[- ..](0[1-9]|1[012])[- ..][201]\d\d\d\s[- +.]\s(0[1-9]|[12][0-9]|3[01])[- ..](0[1-9]|1[012])[- ..][201]\d\d\d`, getDateRange)
 	if err != nil {
 		fmt.Println("Regexp err:", err)
 	}
 	if !matchDate {
-		c.Redirect("/", 302)
+		return false
 	}
+	return true
 }
 
 func (c *AcsController) SummaryReport() {
@@ -58,13 +72,13 @@ func (c *AcsController) SummaryReport() {
 	getDateRange := c.Input().Get("daterange")
 	getDoor := c.Input().Get("door")
 
-	c.ValidationDoor(getDoor)
-	c.ValidationEmployees(getEmployees)
-	c.ValidationDate(getDateRange)
+	if !ValidationDoor(getDoor) || !ValidationDate(getDateRange) || !ValidationEmployees(getEmployees) {
+		c.Redirect("/", 302)
+	}
 
 	c.Data["Title"] = "СКУД | Общий отчет"
-	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
-	c.Data["LastDate"] = timeNow.AddDate(0, 0, 1).Format("02.01.2006")
+	c.Data["FirstDate"] = FirstDate()
+	c.Data["LastDate"] = LastDate()
 	c.Data["Events"] = models.GetEvents(getDateRange, getDoor, getEmployees)
 	c.Data["Doors"] = models.GetDoors()
 	c.Data["DateRange"] = getDateRange
@@ -84,12 +98,13 @@ func (c *AcsController) HoursReport() {
 	getEmployees := c.GetStrings("employee")
 	getDateRange := c.Input().Get("daterange")
 
-	c.ValidationEmployees(getEmployees)
-	c.ValidationDate(getDateRange)
+	if !ValidationDate(getDateRange) || !ValidationEmployees(getEmployees) {
+		c.Redirect("/", 302)
+	}
 
 	c.Data["Title"] = "СКУД | Отчет по отработанному времени"
-	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
-	c.Data["LastDate"] = timeNow.AddDate(0, 0, 1).Format("02.01.2006")
+	c.Data["FirstDate"] = FirstDate()
+	c.Data["LastDate"] = LastDate()
 	c.Data["Events"] = models.GetWorkHours(getDateRange, getEmployees)
 	c.Data["DateRange"] = getDateRange
 	c.Data["Employees"] = models.GetEmployees()
@@ -106,8 +121,8 @@ func (c *AcsController) HoursReport() {
 
 func (c *AcsController) ViewHours() {
 	c.Data["Title"] = "СКУД | Отчет по отработанному времени"
-	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
-	c.Data["LastDate"] = timeNow.AddDate(0, 0, 1).Format("02.01.2006")
+	c.Data["FirstDate"] = FirstDate()
+	c.Data["LastDate"] = LastDate()
 	c.Data["Employees"] = models.GetEmployees()
 
 	c.TplName = "acs/layout.tpl"
@@ -119,10 +134,14 @@ func (c *AcsController) ViewHours() {
 	c.LayoutSections["Footer"] = "footer.html"
 }
 
+func testHandler(w http.ResponseWriter, r http.Request) {
+	fmt.Fprintln(w, "temp")
+}
+
 func (c *AcsController) ViewSummary() {
 	c.Data["Title"] = "СКУД | Общий отчет"
-	c.Data["FirstDate"] = timeNow.Format("02.01.2006")
-	c.Data["LastDate"] = timeNow.AddDate(0, 0, 1).Format("02.01.2006")
+	c.Data["FirstDate"] = FirstDate()
+	c.Data["LastDate"] = LastDate()
 	c.Data["Doors"] = models.GetDoors()
 	c.Data["Employees"] = models.GetEmployees()
 

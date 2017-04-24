@@ -12,5 +12,6 @@ func init() {
 	beego.Router("/acs/hours", &controllers.AcsController{}, "get:ViewHours")
 	beego.Router("/acs/report_summary", &controllers.AcsController{}, "get:SummaryReport")
 	beego.Router("/acs/report_hours", &controllers.AcsController{}, "get:HoursReport")
+	beego.Router("/login", &controllers.SessionController{}, "get:Login")
 	//beego.Router("/smtp2go/summary", &controllers.Smtp2goController{}, "get:Summary")
 }
