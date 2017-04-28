@@ -71,42 +71,44 @@ func updateRows(query []string, cmd ...interface{}) {
 }
 
 func GetEmployees() []Employee {
-	connect()
-	rows, err := db.Query("SELECT ID, Name, FirstName, MidName FROM dbo.pList ORDER BY Name")
-	if err != nil {
-		fmt.Println("Query", err)
-	}
-
-	defer rows.Close()
-	employee := Employee{}
-	for rows.Next() {
-		if err := rows.Scan(&employee.ID, &employee.FirstName, &employee.LastName, &employee.MidName); err != nil {
-			fmt.Println("Cols:", err)
+	if len(employees) == 0 {
+		connect()
+		rows, err := db.Query("SELECT ID, Name, FirstName, MidName FROM dbo.pList ORDER BY Name")
+		if err != nil {
+			fmt.Println("Query", err)
 		}
-		employees = append(employees, employee)
-	}
 
-	defer db.Close()
+		defer rows.Close()
+		employee := Employee{}
+		for rows.Next() {
+			if err := rows.Scan(&employee.ID, &employee.FirstName, &employee.LastName, &employee.MidName); err != nil {
+				fmt.Println("Cols:", err)
+			}
+			employees = append(employees, employee)
+		}
+		defer db.Close()
+	}
 	return employees
 }
 
 func GetDoors() []Door {
-	connect()
-	rows, err := db.Query("SELECT GIndex, Name FROM dbo.AcessPoint ORDER BY Name")
-	if err != nil {
-		fmt.Println("Query:", err)
-	}
-
-	defer rows.Close()
-	for rows.Next() {
-		door := Door{}
-		if err = rows.Scan(&door.ID, &door.Name); err != nil {
-			fmt.Println("Cols:", err)
+	if len(doors) == 0 {
+		connect()
+		rows, err := db.Query("SELECT GIndex, Name FROM dbo.AcessPoint ORDER BY Name")
+		if err != nil {
+			fmt.Println("Query:", err)
 		}
-		doors = append(doors, door)
-	}
 
-	defer db.Close()
+		defer rows.Close()
+		for rows.Next() {
+			door := Door{}
+			if err = rows.Scan(&door.ID, &door.Name); err != nil {
+				fmt.Println("Cols:", err)
+			}
+			doors = append(doors, door)
+		}
+		defer db.Close()
+	}
 	return doors
 }
 
