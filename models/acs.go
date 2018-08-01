@@ -118,8 +118,8 @@ func GetEvents(dateRange, door string, employee []string) (events []Events) {
 		JOIN dbo.pCompany c ON (c.ID = p.Company)
 		JOIN dbo.Events e ON (e.Event = l.Event)
 		JOIN dbo.AcessPoint a ON (a.GIndex = l.DoorIndex)
-		WHERE TimeVal BETWEEN '`, dateRange[:10], `' AND '`, dateRange[13:],
-		`' AND e.Event BETWEEN 26 AND 29 `,
+		WHERE TimeVal BETWEEN ? AND ?
+		AND e.Event BETWEEN 26 AND 29 `,
 	}
 
 	pNameOne := ` AND p.Id in (?) `
@@ -132,40 +132,40 @@ func GetEvents(dateRange, door string, employee []string) (events []Events) {
 		switch len(employee) {
 		case 1:
 			query = append(query, pNameOne, doorIndex)
-			updateRows(query, employee[0], door)
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], door)
 		case 2:
 			query = append(query, pNameTwo, doorIndex)
-			updateRows(query, employee[0], employee[1], door)
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], door)
 		case 3:
 			query = append(query, pNameThree, doorIndex)
-			updateRows(query, employee[0], employee[1], employee[2], door)
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], employee[2], door)
 		case 4:
 			query = append(query, pNameFour, doorIndex)
-			updateRows(query, employee[0], employee[1], employee[2], employee[3], door)
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], employee[2], employee[3], door)
 		}
 
 	} else if len(employee) != 0 {
 		switch len(employee) {
 		case 1:
 			query = append(query, pNameOne)
-			updateRows(query, employee[0])
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0])
 		case 2:
 			query = append(query, pNameTwo)
-			updateRows(query, employee[0], employee[1])
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1])
 		case 3:
 			query = append(query, pNameThree)
-			updateRows(query, employee[0], employee[1], employee[2])
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], employee[2])
 		case 4:
 			query = append(query, pNameFour)
-			updateRows(query, employee[0], employee[1], employee[2], employee[3])
+			updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], employee[2], employee[3])
 		}
 
 	} else if door != "" {
 		query = append(query, doorIndex)
-		updateRows(query, door)
+		updateRows(query, dateRange[:10], dateRange[13:], door)
 
 	} else {
-		updateRows(query)
+		updateRows(query, dateRange[:10], dateRange[13:])
 	}
 
 	event := Events{}
@@ -197,27 +197,26 @@ func GetWorkHours(dateRange string, employee []string) (events []Events) {
 	query := []string{`SELECT p.Name, p.FirstName, p.MidName, c.Name, min(TimeVal), max(TimeVal)
 		FROM dbo.pLogData l
 		JOIN dbo.pList p ON (p.ID = l.HozOrgan)
-		JOIN dbo.pCompany c ON (c.ID = p.Company) `,
-		`WHERE TimeVal BETWEEN '`, dateRange[:10], `' AND '`, dateRange[13:], `'`,
-		` `,
+		JOIN dbo.pCompany c ON (c.ID = p.Company)
+		WHERE TimeVal BETWEEN ? AND ?`, ` `,
 		`GROUP BY p.Name, p.FirstName, p.MidName, c.Name, CONVERT(varchar(20), TimeVal, 104)`,
 	}
 
 	switch len(employee) {
 	case 0:
-		updateRows(query)
+		updateRows(query, dateRange[:10], dateRange[13:])
 	case 1:
-		query[6] = ` AND p.Id in (?) `
-		updateRows(query, employee[0])
+		query[1] = ` AND p.Id in (?) `
+		updateRows(query, dateRange[:10], dateRange[13:], employee[0])
 	case 2:
-		query[6] = ` AND p.Id in (?, ?) `
-		updateRows(query, employee[0], employee[1])
+		query[1] = ` AND p.Id in (?, ?) `
+		updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1])
 	case 3:
-		query[6] = ` AND p.Id in (?, ?, ?) `
-		updateRows(query, employee[0], employee[1], employee[2])
+		query[1] = ` AND p.Id in (?, ?, ?) `
+		updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], employee[2])
 	case 4:
-		query[6] = ` AND p.Id in(?, ?, ?, ?) `
-		updateRows(query, employee[0], employee[1], employee[2], employee[3])
+		query[1] = ` AND p.Id in(?, ?, ?, ?) `
+		updateRows(query, dateRange[:10], dateRange[13:], employee[0], employee[1], employee[2], employee[3])
 	}
 
 	event := Events{}
