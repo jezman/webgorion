@@ -1,0 +1,5 @@
+{{ template "header.html" .}}
+    {{ range .payload }}
+        <p>{{.Name}} - {{.CountOfEmployees}}</p>
+    {{end}}
+{{ template "footer.html" .}}
