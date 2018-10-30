@@ -1,20 +1,26 @@
 package main
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/session"
+  "net/http"
 
-	_ "github.com/jezman/webgorion/routers"
+  "github.com/gin-gonic/gin"
 )
 
+var router *gin.Engine
+
 func main() {
-	beego.SetLevel(beego.LevelDebug)
-	beego.SetLogger("file", `{"filename":"logs/webgorion.log"}`)
-	sessionconf := &session.ManagerConfig{
-		CookieName: "begoosessionID",
-		Gclifetime: 3600,
-	}
-	beego.GlobalSessions, _ = session.NewManager("memory", sessionconf)
-	go beego.GlobalSessions.GC()
-	beego.Run()
+  router = gin.Default()
+  router.LoadHTMLGlob("templates/*")
+
+  router.GET("/", func(c *gin.Context) {
+    c.HTML(
+      http.StatusOK,
+      "index.html",
+      gin.H{
+        "title": "Главная страница",
+      },
+    )
+
+  })
+  router.Run()
 }
